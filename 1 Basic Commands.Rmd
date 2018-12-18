@@ -1,0 +1,119 @@
+---
+title: "Introduction to R"
+author: "Marco Rizk"
+date: "23 November 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Introduction to R
+The application notebooks for "An Introduction to Statistical Learning with Applications in R"     
+ISBN 978-1-4614-7137-0
+ISBN 978-1-4614-7138-7 (eBook)
+
+## Basic Commands
+
+```{r}
+#concatinating elements into a vector x
+x<- c(1,3,2,5)
+x
+```
+
+```{r}
+#checking vector length
+length(x)
+```
+
+```{r}
+#adding vectors < adds corresponding elements
+y <- c(5,8,3,6)
+x+y
+```
+
+```{r}
+#creating a matrix
+matrix(data=c(1,2,3,4),nrow=2,ncol=2)
+```
+
+```{r}
+#roots and powers
+sqrt(4)
+2^3
+```
+
+```{r}
+#create a vector with random normal samples
+a=rnorm(10,mean=20,sd=0.5)
+a
+```
+```{r}
+#Calculating the correlation between two vectors
+b=rnorm(10,mean=5,sd=0.7)
+cor(a,b)
+```
+
+```{r}
+#to create code to generate the same random variables
+set.seed()
+```
+
+```{r}
+#calculating mean and variance and standard deviation
+mean(b)
+var(b)
+sd(b)
+```
+```{r}
+#Creating a sequence between two numbers with a step
+seq(1,10,2)
+```
+## Graphics
+
+```{r}
+#plotting 1 or 2 variables
+x=rnorm(100)
+y=rnorm(100)
+plot(x,y,xlab = "X Axis",ylab="Y Axis",main = "Plot title",col='blue')
+# we use main for plot title
+```
+
+
+```{r}
+#Contour plots for 3D data
+x=sort(x)
+y=x
+f=outer(x,y,function (x,y)cos(y)/(1+x^2))
+contour(x,y,f,nlevels = 15)
+```
+```{r}
+#producing heatmaps
+image(x,y,f)
+```
+```{r}
+#for 3D visualization (theta and phi control the view angles)
+persp(x,y,f,theta =30,phi =20)
+```
+
+## Indexing Data
+
+```{r}
+A=matrix (1:16,4,4)
+#extract element in 2nd row and 3rd column
+A[2,3]
+# selecting multiple elements by providing a list
+A[c(1,3),c(2,4)]
+#selecting a range of rows and columns
+A[1:3,2:4]
+#selecting specific rows and all columns
+A[1:2,]
+#selecting all rows and specific columns
+A[,1:2]
+#selecting all except (-ve)
+A[-c(1,3) ,]
+#finding dimesions
+dim(A)
+```
+

@@ -1,0 +1,143 @@
+---
+title: "Linear Regression"
+author: "Marco Rizk"
+date: "6 December 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# R script for performing Linear Regression
+
+##Simple Linear Regression
+
+```{r}
+library(MASS)
+library(ISLR)
+library(memisc)
+```
+
+```{r}
+#fetching a sample datase (Boston Housing)t and showing its variables
+fix(Boston)
+names(Boston)
+```
+```{r}
+#fitting a linear regression model
+m1=lm(medv???lstat , data=Boston)
+summary(m1)
+```
+
+```{r}
+#getting the model coefficents
+coef(m1)
+```
+```{r}
+#getting the confidence interval for coefficents
+confint(m1)
+```
+```{r}
+#using the fitted model to predict values, confidence interval, prediction interval
+print("Predicted Values")
+predict (m1 ,data.frame(lstat=(c(5,10 ,15))),interval ="none")
+print("Confidence Interval")
+predict (m1 ,data.frame(lstat=(c(5,10 ,15))),interval ="confidence")
+print("Prediction Interval")
+predict (m1 ,data.frame(lstat=(c(5,10 ,15))),interval ="prediction")
+```
+
+```{r}
+#plotting data and regression line
+plot(Boston$lstat ,Boston$medv,pch ="+")
+abline(m1, lwd=3,col='green')
+```
+```{r}
+#plotting the diagnostic plots
+par(mfrow=c(2,2))
+plot(m1)
+```
+
+```{r}
+#alternative plotting method
+par(mfrow=c(1,2))
+plot(predict (m1), residuals (m1))
+plot(predict (m1), rstudent (m1))
+```
+```{r}
+#Computing Leverage Statistics
+plot(hatvalues (m1))
+#index of the largest element with leverage statistics
+which.max(hatvalues (m1))
+```
+## Multiple Linear Regression
+```{r}
+#fitting a multiple regression model and updating the model with new variables
+m2 <- lm(medv ~ lstat, data=Boston)
+m3 <- update(m2, .~. + age)
+#fitting all paramaeters
+m4 <- lm(medv~.,data=Boston)
+#removing one variable
+m5 <- update(m4, ~.-age)
+mtable(m2,m3,m4,m5)
+```
+```{r}
+#checking for colinearity by VIF
+library(car)
+vif(m4)
+```
+
+### Interaction terms
+```{r}
+m6 <- lm(medv~lstat*age,data=Boston)
+summary(m6)
+```
+
+### Non Linear Transformations of Predictors
+```{r}
+# I to include term as it is
+m7 <- lm(medv~lstat + I(lstat^2),data=Boston)
+summary(m7)
+anova(m7)
+```
+```{r}
+#checking residuals of non linear model
+par(mfrow=c(2,2))
+plot(m7)
+```
+```{r}
+#another method, adding to nth polynomial
+m8 <- lm(medv~poly(lstat,5),data=Boston) # adds power 1 to 5 to the model
+summary(m8)
+```
+### Qualitative Predictors
+
+```{r}
+#loading car seats data
+fix(Carseats)
+names(Carseats)
+```
+```{r}
+#R creates dummy variables automatically
+m10 <- lm(Sales ~. + Income:Advertising + Price:Age,data=Carseats) #var:var is for intteraction terms
+summary(m10)
+```
+```{r}
+#to get the encoding of the dummy variables in the model
+contrasts(Carseats$ShelveLoc)
+```
+
+## Writing new functions
+```{r}
+#creating a function to load libraries
+LoadLibraries = function(){
+  library(ISLR)
+  library(MASS)
+  print("Libraries have been loaded")
+}
+
+#calling the function
+LoadLibraries()
+```
+

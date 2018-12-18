@@ -1,0 +1,190 @@
+---
+title: "Subset Selection Methods"
+author: "Marco Rizk"
+date: "12 December 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Subset Selection Methods
+
+```{r}
+#loading baseball hitters dataset
+library(ISLR)
+fix(Hitters)
+names(Hitters)
+dim(Hitters)
+```
+
+```{r}
+#finding the number of missing salary values
+sum(is.na(Hitters$Salary))
+```
+```{r}
+#removing rows with missing values
+Hitters = na.omit(Hitters)
+sum(is.na(Hitters))
+```
+```{r}
+install.packages("leaps")
+```
+
+```{r}
+#using regsubset() function for best subset selection
+library(leaps)
+regfit.full = regsubsets(Salary~.,Hitters)
+summary(regfit.full)
+```
+* means included in the model for example, the best two predictor model has Hits and CRBI
+```{r}
+#the function reports up to 8 predictors which can be expanded by the following argument nvmax
+regfit.full=regsubsets (Salary???.,data=Hitters ,nvmax=19)
+reg.summary =summary (regfit.full)
+```
+
+```{r}
+# The summary() function also returns R2, RSS, adjusted R2, Cp, and BIC
+names(reg.summary)
+```
+```{r}
+reg.summary$rsq
+```
+
+```{r}
+#Plotting RSS, adjusted R2, Cp, and BIC for all of the models at once will help us decide which model to select
+par(mfrow=c(2,2))
+plot(reg.summary$rss ,xlab="Number of Variables ",ylab="RSS",
+type="l")
+plot(reg.summary$adjr2 ,xlab="Number of Variables ",
+ylab="Adjusted RSq",type="l")
+```
+
+```{r}
+#finding max and min
+which.max(reg.summary$adjr2)
+
+```
+```{r}
+plot(reg.summary$cp ,xlab="Number of Variables ",ylab="Cp",
+type="l")
+which.min(reg.summary$cp )
+
+points (10,reg.summary$cp [10], col ="red",cex=2,pch =20)
+which.min(reg.summary$bic )
+
+plot(reg.summary$bic ,xlab="Number of Variables ",ylab="BIC",
+type="l")
+points (6,reg.summary$bic [6],col="red",cex=2,pch =20)
+
+```
+
+The regsubsets() function has a built-in plot() command which can
+be used to display the selected variables for the best model with a given
+number of predictors, ranked according to the BIC, Cp, adjusted R2, or
+AIC
+```{r}
+plot(regfit.full ,scale="r2")
+plot(regfit.full ,scale="adjr2")
+plot(regfit.full ,scale="Cp")
+plot(regfit.full ,scale="bic")
+```
+## Forward and Backward Stepwise Selection
+
+We can also use the regsubsets() function to perform forward stepwise
+or backward stepwise selection
+
+```{r}
+regfit.fwd=regsubsets (Salary???.,data=Hitters , nvmax=19,
+method ="forward")
+summary (regfit.fwd)
+regfit.bwd=regsubsets (Salary???.,data=Hitters , nvmax=19,
+method ="backward")
+summary (regfit.bwd)
+```
+
+```{r}
+#getting coefficeints of 7th model
+coef(regfit.full ,7)
+coef(regfit.fwd ,7)
+coef(regfit.bwd ,7)
+```
+
+##Choosing Among Models Using the Validation Set Approach and Cross-Validation
+
+```{r}
+#selecting a trainign set for cross validation
+set.seed(1)
+train=sample(c(TRUE ,FALSE), nrow(Hitters),rep=TRUE)
+test=(!train)
+```
+
+```{r}
+
+regfit.best=regsubsets (Salary~.,data=Hitters[train ,],
+nvmax=19)
+```
+
+```{r}
+#The model.matrix() function is used in many regression packages for building an "X" matrix from data.
+test.mat=model.matrix(Salary???.,data=Hitters [test ,])
+```
+
+```{r}
+val.errors =rep(NA ,19)
+for(i in 1:19){
+ coefi=coef(regfit.best ,id=i)
+ pred=test.mat[,names(coefi)]%*%coefi
+ val.errors[i]=mean(( Hitters$Salary[test]-pred)^2)
+ }
+```
+
+```{r}
+#since regsubset has no predict method we write our own
+predict.regsubsets =function (object , newdata ,id ,...){
+ form=as.formula (object$call [[2]])
+ mat=model.matrix(form ,newdata )
+ coefi=coef(object ,id=id)
+ xvars=names(coefi)
+ mat[,xvars]%*%coefi
+ }
+```
+
+```{r}
+#get best 10 parameters model from full data
+regfit.best=regsubsets (Salary???.,data=Hitters ,nvmax=19)
+coef(regfit.best ,10)
+```
+
+```{r}
+#10 k cross validation
+k=10
+set.seed(1)
+folds=sample (1:k,nrow(Hitters),replace=TRUE)
+cv.errors =matrix (NA,k,19, dimnames =list(NULL , paste (1:19) ))
+for(j in 1:k){
+ best.fit=regsubsets (Salary???.,data=Hitters [folds!=j,],
+nvmax=19)
+ for(i in 1:19){
+ pred=predict (best.fit ,Hitters [folds ==j,],id=i)
+ cv.errors[j,i]= mean( ( Hitters$Salary[ folds==j]-pred)^2)
+ }
+ }
+```
+
+```{r}
+#Averaging and plotting errors
+mean.cv.errors=apply(cv.errors ,2, mean)
+mean.cv.errors
+par(mfrow=c(1,1))
+plot(mean.cv.errors ,type="b")
+```
+the best model (least error) is the 11 variable model
+```{r}
+#extracting the best model
+reg.best=regsubsets (Salary~.,data=Hitters , nvmax=19)
+coef(reg.best ,11)
+```
+
